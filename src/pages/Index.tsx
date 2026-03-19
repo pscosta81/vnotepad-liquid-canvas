@@ -1,7 +1,12 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import NoteList from "@/components/NoteList";
 import NoteEditor from "@/components/NoteEditor";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, ArrowLeft } from "lucide-react";
 
 interface Note {
   id: string;
@@ -21,26 +26,46 @@ interface Category {
 }
 
 const Index = () => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      title: "Bem-vindo ao VnotePad",
-      content: "Este é o seu novo bloco de notas premium. Experimente criar novas notas, organizar por tags e explorar a interface.\n\nDica: Use a barra de pesquisa para encontrar notas rapidamente.",
-      category: "geral",
-      favorite: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deleted: false,
-    },
-  ]);
+  const { user, signOut } = useAuth();
+  const isMobile = useIsMobile();
+  const [mobileView, setMobileView] = useState<"list" | "editor">("list");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([
     { id: "geral", name: "Geral", icon: null },
     { id: "trabalho", name: "Trabalho", icon: null },
     { id: "pessoal", name: "Pessoal", icon: null },
   ]);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [activeNoteId, setActiveNoteId] = useState<string | null>("1");
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Load notes from DB
+  useEffect(() => {
+    if (!user) return;
+    const loadNotes = async () => {
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      if (!error && data) {
+        setNotes(
+          data.map((n) => ({
+            id: n.id,
+            title: n.title,
+            content: n.content,
+            category: n.category,
+            favorite: n.favorite,
+            createdAt: new Date(n.created_at),
+            updatedAt: new Date(n.updated_at),
+            deleted: n.deleted,
+          }))
+        );
+      }
+    };
+    loadNotes();
+  }, [user]);
 
   const filteredNotes = useMemo(() => {
     let filtered = notes.filter((n) => !n.deleted);
@@ -80,37 +105,72 @@ const Index = () => {
     return counts;
   }, [notes, categories]);
 
-  const createNote = useCallback(() => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: "",
-      content: "",
-      category: activeCategory !== "all" && activeCategory !== "favorites" && activeCategory !== "trash" ? activeCategory : "geral",
-      favorite: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deleted: false,
-    };
-    setNotes((prev) => [newNote, ...prev]);
-    setActiveNoteId(newNote.id);
-  }, [activeCategory]);
+  const createNote = useCallback(async () => {
+    if (!user) return;
+    const category =
+      activeCategory !== "all" && activeCategory !== "favorites" && activeCategory !== "trash"
+        ? activeCategory
+        : "geral";
+
+    const { data, error } = await supabase
+      .from("notes")
+      .insert({ user_id: user.id, title: "", content: "", category })
+      .select()
+      .single();
+
+    if (!error && data) {
+      const newNote: Note = {
+        id: data.id,
+        title: data.title,
+        content: data.content,
+        category: data.category,
+        favorite: data.favorite,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+        deleted: data.deleted,
+      };
+      setNotes((prev) => [newNote, ...prev]);
+      setActiveNoteId(newNote.id);
+      if (isMobile) setMobileView("editor");
+    }
+  }, [activeCategory, user, isMobile]);
 
   const updateNote = useCallback((id: string, updates: Partial<Note>) => {
     setNotes((prev) =>
       prev.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: new Date() } : n))
     );
+    // Debounced DB update
+    const dbUpdates: Record<string, any> = {};
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.content !== undefined) dbUpdates.content = updates.content;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.favorite !== undefined) dbUpdates.favorite = updates.favorite;
+    if (updates.deleted !== undefined) dbUpdates.deleted = updates.deleted;
+
+    if (Object.keys(dbUpdates).length > 0) {
+      supabase.from("notes").update(dbUpdates).eq("id", id).then();
+    }
   }, []);
 
   const deleteNote = useCallback((id: string) => {
     setNotes((prev) =>
       prev.map((n) => (n.id === id ? { ...n, deleted: true, updatedAt: new Date() } : n))
     );
+    supabase.from("notes").update({ deleted: true }).eq("id", id).then();
     setActiveNoteId(null);
-  }, []);
+    if (isMobile) setMobileView("list");
+  }, [isMobile]);
 
   const toggleFavorite = useCallback((id: string) => {
     setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, favorite: !n.favorite } : n))
+      prev.map((n) => {
+        if (n.id === id) {
+          const newFav = !n.favorite;
+          supabase.from("notes").update({ favorite: newFav }).eq("id", id).then();
+          return { ...n, favorite: newFav };
+        }
+        return n;
+      })
     );
   }, []);
 
@@ -122,22 +182,103 @@ const Index = () => {
     }
   }, []);
 
+  const handleSelectNote = useCallback((id: string) => {
+    setActiveNoteId(id);
+    if (isMobile) setMobileView("editor");
+  }, [isMobile]);
+
+  const handleCategoryChange = useCallback((id: string) => {
+    setActiveCategory(id);
+    setSidebarOpen(false);
+  }, []);
+
+  const sidebarContent = (
+    <Sidebar
+      categories={categories}
+      activeCategory={activeCategory}
+      onCategoryChange={handleCategoryChange}
+      onAddCategory={addCategory}
+      noteCount={noteCount}
+      onSignOut={signOut}
+    />
+  );
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <div className="carbon-fiber fixed inset-0 flex flex-col">
+        {/* Mobile header */}
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background/80 backdrop-blur-lg z-10">
+          {mobileView === "editor" ? (
+            <button onClick={() => setMobileView("list")} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft size={20} />
+            </button>
+          ) : (
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+                  <Menu size={20} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0 bg-background border-border">
+                {sidebarContent}
+              </SheetContent>
+            </Sheet>
+          )}
+          <span className="text-sm font-medium text-foreground flex-1">VnotePad</span>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          {mobileView === "list" ? (
+            <NoteList
+              notes={filteredNotes}
+              activeNoteId={activeNoteId}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSelectNote={handleSelectNote}
+              onCreateNote={createNote}
+              fullWidth
+            />
+          ) : (
+            <NoteEditor
+              note={activeNote}
+              onUpdate={updateNote}
+              onDelete={deleteNote}
+              onToggleFavorite={toggleFavorite}
+              fullWidth
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop/Tablet layout
   return (
     <div className="carbon-fiber fixed inset-0 flex items-center justify-center p-4">
       <div className="flex gap-3 w-full max-w-7xl h-[calc(100vh-2rem)] max-h-[900px]">
-        <Sidebar
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          onAddCategory={addCategory}
-          noteCount={noteCount}
-        />
+        <div className="hidden lg:flex">
+          {sidebarContent}
+        </div>
+        {/* Tablet: sidebar as sheet */}
+        <div className="lg:hidden flex items-start pt-2">
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <button className="p-2 glass-panel text-muted-foreground hover:text-foreground transition-colors">
+                <Menu size={20} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0 bg-background border-border">
+              {sidebarContent}
+            </SheetContent>
+          </Sheet>
+        </div>
         <NoteList
           notes={filteredNotes}
           activeNoteId={activeNoteId}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onSelectNote={setActiveNoteId}
+          onSelectNote={handleSelectNote}
           onCreateNote={createNote}
         />
         <NoteEditor
