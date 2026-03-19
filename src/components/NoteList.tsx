@@ -17,11 +17,12 @@ interface NoteListProps {
   onSearchChange: (q: string) => void;
   onSelectNote: (id: string) => void;
   onCreateNote: () => void;
+  fullWidth?: boolean;
 }
 
-const NoteList = ({ notes, activeNoteId, searchQuery, onSearchChange, onSelectNote, onCreateNote }: NoteListProps) => {
+const NoteList = ({ notes, activeNoteId, searchQuery, onSearchChange, onSelectNote, onCreateNote, fullWidth }: NoteListProps) => {
   return (
-    <div className="glass-panel w-72 flex flex-col h-full">
+    <div className={`glass-panel neon-glow flex flex-col h-full ${fullWidth ? "w-full rounded-none" : "w-72"}`}>
       {/* Search + New */}
       <div className="p-3 flex flex-col gap-2">
         <div className="relative">

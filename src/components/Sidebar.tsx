@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2 } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 interface Category {
@@ -14,6 +14,7 @@ interface SidebarProps {
   onCategoryChange: (id: string) => void;
   onAddCategory: () => void;
   noteCount: Record<string, number>;
+  onSignOut?: () => void;
 }
 
 const defaultCategories: Category[] = [
@@ -22,14 +23,14 @@ const defaultCategories: Category[] = [
   { id: "trash", name: "Lixeira", icon: <Trash2 size={18} /> },
 ];
 
-const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, noteCount }: SidebarProps) => {
+const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, noteCount, onSignOut }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <aside className="glass-panel flex flex-col w-64 h-full p-4 gap-2">
+    <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
       {/* Logo */}
       <div className="flex items-center gap-3 px-2 py-3 mb-4">
-        <img src={logo} alt="VnotePad" className="w-8 h-8" />
+        <img src={logo} alt="VnotePad" className="w-20 h-20 animate-logo" />
         <span className="text-lg font-semibold text-foreground tracking-tight">VnotePad</span>
       </div>
 
@@ -94,6 +95,17 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
           </button>
         ))}
       </nav>
+
+      {/* Sign out */}
+      {onSignOut && (
+        <button
+          onClick={onSignOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 mt-2"
+        >
+          <LogOut size={16} />
+          <span>Sair</span>
+        </button>
+      )}
     </aside>
   );
 };

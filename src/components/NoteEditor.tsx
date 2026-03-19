@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Star, Trash2, Tag } from "lucide-react";
+import { Star, Trash2, Tag, Download } from "lucide-react";
 
 interface Note {
   id: string;
@@ -16,9 +16,10 @@ interface NoteEditorProps {
   onUpdate: (id: string, updates: Partial<Note>) => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  fullWidth?: boolean;
 }
 
-const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite }: NoteEditorProps) => {
+const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth }: NoteEditorProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -34,9 +35,20 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite }: NoteEditorPr
     autoResize();
   }, [note?.content]);
 
+  const exportNote = () => {
+    if (!note) return;
+    const blob = new Blob([`${note.title}\n\n${note.content}`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${note.title || "nota"}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!note) {
     return (
-      <div className="glass-panel flex-1 flex items-center justify-center">
+      <div className={`glass-panel neon-glow flex-1 flex items-center justify-center ${fullWidth ? "h-full rounded-none" : ""}`}>
         <div className="text-center text-muted-foreground">
           <p className="text-lg font-medium mb-1">Nenhuma nota selecionada</p>
           <p className="text-sm">Selecione ou crie uma nota para começar</p>
@@ -46,16 +58,23 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite }: NoteEditorPr
   }
 
   return (
-    <div className="glass-panel flex-1 flex flex-col animate-note-enter">
+    <div className={`glass-panel neon-glow flex-1 flex flex-col animate-note-enter ${fullWidth ? "h-full rounded-none" : ""}`}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-border">
+      <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Tag size={12} />
           <span>{note.category || "Sem tag"}</span>
-          <span className="mx-2">•</span>
-          <span>{note.updatedAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
+          <span className="hidden sm:inline mx-2">•</span>
+          <span className="hidden sm:inline">{note.updatedAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={exportNote}
+            className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+            title="Exportar como .txt"
+          >
+            <Download size={16} />
+          </button>
           <button
             onClick={() => onToggleFavorite(note.id)}
             className={`p-2 rounded-lg transition-all duration-200 ${
@@ -76,13 +95,13 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite }: NoteEditorPr
       </div>
 
       {/* Editor */}
-      <div className="flex-1 flex flex-col px-6 py-5 overflow-y-auto">
+      <div className="flex-1 flex flex-col px-4 md:px-6 py-5 overflow-y-auto">
         <input
           ref={titleRef}
           value={note.title}
           onChange={(e) => onUpdate(note.id, { title: e.target.value })}
           placeholder="Título da nota..."
-          className="bg-transparent text-2xl font-semibold text-foreground placeholder:text-muted-foreground/40 outline-none mb-4 w-full"
+          className="bg-transparent text-xl md:text-2xl font-semibold text-foreground placeholder:text-muted-foreground/40 outline-none mb-4 w-full"
         />
         <textarea
           ref={textareaRef}
