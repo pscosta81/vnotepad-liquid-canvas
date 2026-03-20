@@ -30,7 +30,7 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
     <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
       {/* Logo */}
       <div className="flex items-center gap-3 px-2 py-3 mb-4">
-        <img src={logo} alt="VnotePad" className="w-20 h-20 animate-logo" />
+        <img src={logo} alt="VnotePad" className="w-32 h-32 animate-logo" />
         <span className="text-lg font-semibold text-foreground tracking-tight">VnotePad</span>
       </div>
 
