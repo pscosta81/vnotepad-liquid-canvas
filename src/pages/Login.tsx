@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/components/AuthProvider";
-import { useEffect } from "react";
 import logo from "@/assets/logo.png";
 import { Mail, Lock, LogIn } from "lucide-react";
 
@@ -64,21 +63,24 @@ const Login = () => {
     }
   };
 
+  const emailHasValue = email.length > 0;
+  const passwordHasValue = password.length > 0;
+
   return (
     <div className="carbon-fiber fixed inset-0 flex items-center justify-center p-4">
       <div className="glass-panel neon-glow w-full max-w-md p-8 flex flex-col items-center gap-6 animate-note-enter">
-        {/* Logo */}
-        <img src={logo} alt="VnotePad" className="w-20 h-20 animate-logo" />
+        {/* Logo 128x128 */}
+        <img src={logo} alt="VnotePad" className="w-32 h-32 animate-logo" />
         <h1 className="text-2xl font-semibold text-foreground tracking-tight">VnotePad</h1>
         <p className="text-sm text-muted-foreground text-center">
           {isSignUp ? "Crie sua conta para começar" : "Entre para acessar suas notas"}
         </p>
 
-        {/* Google Auth */}
+        {/* Google Auth - raised button */}
         <button
           onClick={handleGoogleAuth}
           disabled={loading}
-          className="flex items-center justify-center gap-3 w-full py-3 rounded-lg bg-muted/30 border border-border text-foreground text-sm font-medium hover:bg-muted/50 transition-all duration-200 disabled:opacity-50"
+          className="btn-raised flex items-center justify-center gap-3 w-full py-3 rounded-lg bg-muted/30 border border-border text-foreground text-sm font-medium hover:bg-muted/50 transition-all duration-200 disabled:opacity-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -98,18 +100,20 @@ const Login = () => {
         {/* Email/Password Form */}
         <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-3">
           <div className="relative">
-            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
               required
-              className="w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow transition-all duration-200"
+              className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                emailHasValue ? "input-raised" : "input-inset"
+              }`}
             />
           </div>
           <div className="relative">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
             <input
               type="password"
               value={password}
@@ -117,13 +121,15 @@ const Login = () => {
               placeholder="Senha"
               required
               minLength={6}
-              className="w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow transition-all duration-200"
+              className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                passwordHasValue ? "input-raised" : "input-inset"
+              }`}
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50"
+            className="btn-raised flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50"
           >
             <LogIn size={16} />
             {isSignUp ? "Criar Conta" : "Entrar"}

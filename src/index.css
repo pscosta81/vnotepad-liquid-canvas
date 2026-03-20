@@ -207,3 +207,40 @@
 .animate-slide-category {
   animation: slide-category 0.25s ease-out forwards;
 }
+
+/* Neomorphism: raised button */
+.btn-raised {
+  box-shadow:
+    4px 4px 10px hsla(0, 0%, 0%, 0.5),
+    -2px -2px 8px hsla(0, 0%, 100%, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-raised:hover {
+  box-shadow:
+    6px 6px 14px hsla(0, 0%, 0%, 0.6),
+    -3px -3px 10px hsla(0, 0%, 100%, 0.08);
+  transform: translateY(-1px);
+}
+.btn-raised:active {
+  box-shadow:
+    2px 2px 6px hsla(0, 0%, 0%, 0.5),
+    -1px -1px 4px hsla(0, 0%, 100%, 0.04);
+  transform: scale(0.97);
+}
+
+/* Neomorphism: inset input */
+.input-inset {
+  box-shadow:
+    inset 3px 3px 8px hsla(0, 0%, 0%, 0.5),
+    inset -2px -2px 6px hsla(0, 0%, 100%, 0.04);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Neomorphism: input transitions to raised */
+.input-raised {
+  box-shadow:
+    4px 4px 10px hsla(0, 0%, 0%, 0.5),
+    -2px -2px 8px hsla(0, 0%, 100%, 0.06),
+    0 0 12px hsla(187, 94%, 43%, 0.15);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
