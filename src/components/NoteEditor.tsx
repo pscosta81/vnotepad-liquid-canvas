@@ -28,7 +28,7 @@ interface NoteEditorProps {
   categories?: Category[];
 }
 
-const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth }: NoteEditorProps) => {
+const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth, categories = [] }: NoteEditorProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const autoResize = () => {
