@@ -244,3 +244,25 @@
     0 0 12px hsla(187, 94%, 43%, 0.15);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Calendar: day hover pulse */
+.cal-day-hover:hover {
+  animation: cal-day-pulse 0.6s ease-in-out;
+  box-shadow: 0 0 12px hsla(187, 94%, 43%, 0.4);
+}
+
+@keyframes cal-day-pulse {
+  0%, 100% { transform: scale(1); box-shadow: none; }
+  50% { transform: scale(1.15); box-shadow: 0 0 14px hsla(187, 94%, 43%, 0.5); }
+}
+
+/* Calendar: selected day expand (Macbook-style) */
+.cal-day-expanded {
+  animation: cal-day-expand 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cal-day-expand {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); opacity: 1; }
+}
