@@ -12,15 +12,23 @@ interface Note {
   updatedAt: Date;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color?: string;
+}
+
 interface NoteEditorProps {
   note: Note | null;
   onUpdate: (id: string, updates: Partial<Note>) => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   fullWidth?: boolean;
+  categories?: Category[];
 }
 
-const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth }: NoteEditorProps) => {
+const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth, categories = [] }: NoteEditorProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const autoResize = () => {
@@ -66,8 +74,8 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth }: N
         {/* Toolbar */}
         <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Tag size={12} />
-            <span>{note.category || "Sem tag"}</span>
+            <Tag size={12} style={{ color: categories.find(c => c.id === note.category)?.color || 'currentColor' }} />
+            <span style={{ color: categories.find(c => c.id === note.category)?.color || 'currentColor' }}>{note.category || "Sem tag"}</span>
             <span className="hidden sm:inline mx-2">•</span>
             <span className="hidden sm:inline">{note.updatedAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}</span>
           </div>
