@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 interface Category {
   id: string;
   name: string;
   icon: React.ReactNode;
+  color?: string;
 }
 
 interface SidebarProps {
@@ -13,17 +14,18 @@ interface SidebarProps {
   activeCategory: string;
   onCategoryChange: (id: string) => void;
   onAddCategory: () => void;
+  onDeleteCategory?: (id: string) => void;
   noteCount: Record<string, number>;
   onSignOut?: () => void;
 }
 
-const defaultCategories: Category[] = [
+const defaultCategories = [
   { id: "all", name: "Todas as Notas", icon: <Inbox size={18} /> },
   { id: "favorites", name: "Favoritos", icon: <Star size={18} /> },
   { id: "trash", name: "Lixeira", icon: <Trash2 size={18} /> },
 ];
 
-const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, noteCount, onSignOut }: SidebarProps) => {
+const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
@@ -80,17 +82,31 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
             onClick={() => onCategoryChange(cat.id)}
             onMouseEnter={() => setHoveredItem(cat.id)}
             onMouseLeave={() => setHoveredItem(null)}
-            className={`animate-slide-category flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200
+            className={`animate-slide-category flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 group
               ${activeCategory === cat.id
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
             style={{ animationDelay: `${i * 30}ms` }}
           >
-            <Hash size={14} className={activeCategory === cat.id ? "text-primary" : "text-muted-foreground"} />
+            <Hash
+              size={14}
+              style={{ color: cat.color || "currentColor" }}
+            />
             <span className="flex-1 text-left truncate">{cat.name}</span>
             {noteCount[cat.id] !== undefined && (
-              <span className="text-xs text-muted-foreground/60">{noteCount[cat.id]}</span>
+              <span className="text-xs text-muted-foreground/60 group-hover:hidden">{noteCount[cat.id]}</span>
+            )}
+            {onDeleteCategory && hoveredItem === cat.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteCategory(cat.id);
+                }}
+                className="p-0.5 rounded text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <X size={12} />
+              </button>
             )}
           </button>
         ))}
