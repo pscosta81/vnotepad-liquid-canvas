@@ -303,6 +303,7 @@ const Index = () => {
           onUpdate={updateNote}
           onDelete={deleteNote}
           onToggleFavorite={toggleFavorite}
+          categories={categories}
         />
       </div>
 
