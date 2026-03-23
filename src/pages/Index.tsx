@@ -262,6 +262,7 @@ const Index = () => {
               onDelete={deleteNote}
               onToggleFavorite={toggleFavorite}
               fullWidth
+              categories={categories}
             />
           )}
         </div>
