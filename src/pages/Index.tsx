@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import NoteList from "@/components/NoteList";
 import NoteEditor from "@/components/NoteEditor";
+import AddTagDialog from "@/components/AddTagDialog";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,19 +24,27 @@ interface Category {
   id: string;
   name: string;
   icon: React.ReactNode;
+  color?: string;
 }
+
+const DEFAULT_TAG_COLORS: Record<string, string> = {
+  geral: "#06B6D4",
+  trabalho: "#3B82F6",
+  pessoal: "#8B5CF6",
+};
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [addTagOpen, setAddTagOpen] = useState(false);
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Category[]>([
-    { id: "geral", name: "Geral", icon: null },
-    { id: "trabalho", name: "Trabalho", icon: null },
-    { id: "pessoal", name: "Pessoal", icon: null },
+    { id: "geral", name: "Geral", icon: null, color: DEFAULT_TAG_COLORS.geral },
+    { id: "trabalho", name: "Trabalho", icon: null, color: DEFAULT_TAG_COLORS.trabalho },
+    { id: "pessoal", name: "Pessoal", icon: null, color: DEFAULT_TAG_COLORS.pessoal },
   ]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
@@ -139,7 +148,6 @@ const Index = () => {
     setNotes((prev) =>
       prev.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: new Date() } : n))
     );
-    // Debounced DB update
     const dbUpdates: Record<string, any> = {};
     if (updates.title !== undefined) dbUpdates.title = updates.title;
     if (updates.content !== undefined) dbUpdates.content = updates.content;
@@ -175,12 +183,18 @@ const Index = () => {
   }, []);
 
   const addCategory = useCallback(() => {
-    const name = prompt("Nome da nova tag:");
-    if (name?.trim()) {
-      const id = name.trim().toLowerCase().replace(/\s+/g, "-");
-      setCategories((prev) => [...prev, { id, name: name.trim(), icon: null }]);
-    }
+    setAddTagOpen(true);
   }, []);
+
+  const handleAddTag = useCallback((name: string, color: string) => {
+    const id = name.toLowerCase().replace(/\s+/g, "-");
+    setCategories((prev) => [...prev, { id, name, icon: null, color }]);
+  }, []);
+
+  const deleteCategory = useCallback((catId: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== catId));
+    if (activeCategory === catId) setActiveCategory("all");
+  }, [activeCategory]);
 
   const handleSelectNote = useCallback((id: string) => {
     setActiveNoteId(id);
@@ -198,6 +212,7 @@ const Index = () => {
       activeCategory={activeCategory}
       onCategoryChange={handleCategoryChange}
       onAddCategory={addCategory}
+      onDeleteCategory={deleteCategory}
       noteCount={noteCount}
       onSignOut={signOut}
     />
@@ -207,7 +222,6 @@ const Index = () => {
   if (isMobile) {
     return (
       <div className="carbon-fiber fixed inset-0 flex flex-col">
-        {/* Mobile header */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background/80 backdrop-blur-lg z-10">
           {mobileView === "editor" ? (
             <button onClick={() => setMobileView("list")} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -249,6 +263,8 @@ const Index = () => {
             />
           )}
         </div>
+
+        <AddTagDialog open={addTagOpen} onOpenChange={setAddTagOpen} onAdd={handleAddTag} />
       </div>
     );
   }
@@ -260,7 +276,6 @@ const Index = () => {
         <div className="hidden lg:flex">
           {sidebarContent}
         </div>
-        {/* Tablet: sidebar as sheet */}
         <div className="lg:hidden flex items-start pt-2">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -288,6 +303,8 @@ const Index = () => {
           onToggleFavorite={toggleFavorite}
         />
       </div>
+
+      <AddTagDialog open={addTagOpen} onOpenChange={setAddTagOpen} onAdd={handleAddTag} />
     </div>
   );
 };
