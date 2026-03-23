@@ -203,8 +203,10 @@ const Index = () => {
 
   const handleCategoryChange = useCallback((id: string) => {
     setActiveCategory(id);
+    setActiveNoteId(null);
     setSidebarOpen(false);
-  }, []);
+    if (isMobile) setMobileView("list");
+  }, [isMobile]);
 
   const sidebarContent = (
     <Sidebar
