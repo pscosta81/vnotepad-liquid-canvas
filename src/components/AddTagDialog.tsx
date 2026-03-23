@@ -63,7 +63,7 @@ const AddTagDialog = ({ open, onOpenChange, onAdd }: AddTagDialogProps) => {
                   }`}
                   style={{
                     backgroundColor: c,
-                    ringColor: c,
+                    ...(color === c ? { boxShadow: `0 0 0 2px var(--background), 0 0 0 4px ${c}` } : {}),
                   }}
                 />
               ))}
