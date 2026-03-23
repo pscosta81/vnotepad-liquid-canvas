@@ -12,12 +12,20 @@ interface Note {
   updatedAt: Date;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color?: string;
+}
+
 interface NoteEditorProps {
   note: Note | null;
   onUpdate: (id: string, updates: Partial<Note>) => void;
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   fullWidth?: boolean;
+  categories?: Category[];
 }
 
 const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth }: NoteEditorProps) => {
