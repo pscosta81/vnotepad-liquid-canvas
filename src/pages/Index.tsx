@@ -34,7 +34,7 @@ const DEFAULT_TAG_COLORS: Record<string, string> = {
 };
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, displayName } = useAuth();
   const isMobile = useIsMobile();
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -196,6 +196,15 @@ const Index = () => {
     if (activeCategory === catId) setActiveCategory("all");
   }, [activeCategory]);
 
+  const clearTrash = useCallback(async () => {
+    const trashNotes = notes.filter((n) => n.deleted);
+    if (trashNotes.length === 0) return;
+    const ids = trashNotes.map((n) => n.id);
+    setNotes((prev) => prev.filter((n) => !n.deleted));
+    setActiveNoteId(null);
+    await supabase.from("notes").delete().in("id", ids);
+  }, [notes]);
+
   const handleSelectNote = useCallback((id: string) => {
     setActiveNoteId(id);
     if (isMobile) setMobileView("editor");
@@ -217,6 +226,8 @@ const Index = () => {
       onDeleteCategory={deleteCategory}
       noteCount={noteCount}
       onSignOut={signOut}
+      userName={displayName}
+      onClearTrash={clearTrash}
     />
   );
 

@@ -9,6 +9,7 @@ import { Mail, Lock, LogIn } from "lucide-react";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,12 +29,20 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { error, data } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { full_name: name },
+          },
         });
         if (error) throw error;
+        // Supabase returns a fake user with no identities when email already exists
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          setError("Este email já está cadastrado. Tente fazer login.");
+          return;
+        }
         setMessage("Verifique seu email para confirmar o cadastro.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -99,6 +108,21 @@ const Login = () => {
 
         {/* Email/Password Form */}
         <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-3">
+          {isSignUp && (
+            <div className="relative">
+              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nome"
+                required
+                className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                  name.length > 0 ? "input-raised" : "input-inset"
+                }`}
+              />
+            </div>
+          )}
           <div className="relative">
             <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
             <input

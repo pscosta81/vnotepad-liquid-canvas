@@ -17,6 +17,8 @@ interface SidebarProps {
   onDeleteCategory?: (id: string) => void;
   noteCount: Record<string, number>;
   onSignOut?: () => void;
+  userName?: string | null;
+  onClearTrash?: () => void;
 }
 
 const defaultCategories = [
@@ -25,15 +27,23 @@ const defaultCategories = [
   { id: "trash", name: "Lixeira", icon: <Trash2 size={18} /> },
 ];
 
-const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut }: SidebarProps) => {
+const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
     <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-2 py-3 mb-4">
+      {/* Greeting */}
+      {userName && (
+        <div className="text-center px-2 mb-1">
+          <p className="text-sm text-primary font-medium">Olá {userName}</p>
+          <p className="text-xs text-muted-foreground">Bem vindo a sua agenda pessoal</p>
+        </div>
+      )}
+
+      {/* Logo + Name */}
+      <div className="flex flex-col items-center px-2 py-3 mb-4">
         <img src={logo} alt="VnotePad" className="w-32 h-32 animate-logo" />
-        <span className="text-lg font-semibold text-foreground tracking-tight">VnotePad</span>
+        <span className="text-lg font-semibold text-foreground tracking-tight mt-2">VnotePad</span>
       </div>
 
       {/* Default categories */}
@@ -60,6 +70,16 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
           </button>
         ))}
       </nav>
+
+      {/* Clear trash button */}
+      {activeCategory === "trash" && (noteCount["trash"] || 0) > 0 && onClearTrash && (
+        <button
+          onClick={onClearTrash}
+          className="mx-3 mt-1 py-1.5 px-3 rounded-lg text-xs font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-all duration-200"
+        >
+          Limpar Lixeira
+        </button>
+      )}
 
       {/* Divider */}
       <div className="h-px bg-border my-3" />
