@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet } from "lucide-react";
+import ExportDialog from "./ExportDialog";
 import logo from "@/assets/logo.png";
 
 interface Category {
@@ -29,6 +30,7 @@ const defaultCategories = [
 
 const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   return (
     <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
@@ -132,16 +134,29 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         ))}
       </nav>
 
-      {/* Sign out */}
-      {onSignOut && (
+      {/* Sign out and Export button */}
+      <div className="flex items-center gap-2 mt-2">
+        {onSignOut && (
+          <button
+            onClick={onSignOut}
+            className="flex-1 flex items-center justify-center gap-2 border border-transparent px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+            title="Sair"
+          >
+            <LogOut size={16} />
+            <span>Sair</span>
+          </button>
+        )}
         <button
-          onClick={onSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 mt-2"
+          onClick={() => setExportOpen(true)}
+          className="flex-1 flex items-center justify-center gap-2 border border-transparent px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+          title="Backup XLSX"
         >
-          <LogOut size={16} />
-          <span>Sair</span>
+          <FileSpreadsheet size={16} />
+          <span>XLSX</span>
         </button>
-      )}
+      </div>
+
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </aside>
   );
 };

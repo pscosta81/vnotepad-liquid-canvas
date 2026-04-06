@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/components/AuthProvider";
 import logo from "@/assets/logo.png";
-import { Mail, Lock, LogIn } from "lucide-react";
+import { Mail, Lock, LogIn, Building2 } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ const Login = () => {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: name },
+            data: { full_name: name, company_name: company },
           },
         });
         if (error) throw error;
@@ -109,19 +110,34 @@ const Login = () => {
         {/* Email/Password Form */}
         <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-3">
           {isSignUp && (
-            <div className="relative">
-              <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nome"
-                required
-                className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
-                  name.length > 0 ? "input-raised" : "input-inset"
-                }`}
-              />
-            </div>
+            <>
+              <div className="relative">
+                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nome"
+                  required
+                  className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                    name.length > 0 ? "input-raised" : "input-inset"
+                  }`}
+                />
+              </div>
+              <div className="relative">
+                <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                <input
+                  type="text"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value.toUpperCase())}
+                  placeholder="Nome da Empresa"
+                  required
+                  className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                    company.length > 0 ? "input-raised" : "input-inset"
+                  }`}
+                />
+              </div>
+            </>
           )}
           <div className="relative">
             <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />

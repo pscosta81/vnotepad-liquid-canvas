@@ -56,8 +56,8 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth, cat
 
   if (!note) {
     return (
-      <div className={`flex-1 flex flex-col gap-3 ${fullWidth ? "h-full" : ""}`}>
-        <div className="glass-panel neon-glow flex-1 flex items-center justify-center rounded-lg">
+      <div className={`flex-1 flex flex-col gap-3 overflow-y-auto p-1 ${fullWidth ? "h-full" : ""}`}>
+        <div className="glass-panel neon-glow flex-1 flex items-center justify-center rounded-lg min-h-[300px]">
           <div className="text-center text-muted-foreground">
             <p className="text-lg font-medium mb-1">Nenhuma nota selecionada</p>
             <p className="text-sm">Selecione ou crie uma nota para começar</p>
@@ -69,8 +69,8 @@ const NoteEditor = ({ note, onUpdate, onDelete, onToggleFavorite, fullWidth, cat
   }
 
   return (
-    <div className={`flex-1 flex flex-col gap-3 ${fullWidth ? "h-full" : ""}`}>
-      <div className={`glass-panel neon-glow flex-1 flex flex-col animate-note-enter ${fullWidth ? "rounded-none" : ""}`}>
+    <div className={`flex-1 flex flex-col gap-3 overflow-y-auto p-1 ${fullWidth ? "h-full" : ""}`}>
+      <div className={`glass-panel neon-glow flex flex-col flex-shrink-0 animate-note-enter ${fullWidth ? "rounded-none" : ""} min-h-[400px]`}>
         {/* Toolbar */}
         <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-border">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">

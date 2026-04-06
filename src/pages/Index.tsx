@@ -52,6 +52,12 @@ const Index = () => {
 
   // Load notes from DB
   useEffect(() => {
+    if (user && user.user_metadata?.company_name) {
+      document.title = `VnotePad -- Premium @Registrado ${user.user_metadata.company_name}`;
+    } else {
+      document.title = "VnotePad -- Premium";
+    }
+
     if (!user) return;
     const loadNotes = async () => {
       const { data, error } = await supabase

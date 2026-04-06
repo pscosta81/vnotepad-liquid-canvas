@@ -14,9 +14,28 @@ export type Database = {
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       calendar_entries: {
         Row: {
           color: string | null
+          company_id: string | null
           content: string | null
           created_at: string | null
           entry_date: string
@@ -25,6 +44,7 @@ export type Database = {
         }
         Insert: {
           color?: string | null
+          company_id?: string | null
           content?: string | null
           created_at?: string | null
           entry_date: string
@@ -33,17 +53,27 @@ export type Database = {
         }
         Update: {
           color?: string | null
+          company_id?: string | null
           content?: string | null
           created_at?: string | null
           entry_date?: string
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "calendar_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       notes: {
         Row: {
           category: string
+          company_id: string | null
           content: string
           created_at: string
           deleted: boolean
@@ -55,6 +85,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          company_id?: string | null
           content?: string
           created_at?: string
           deleted?: boolean
@@ -66,6 +97,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          company_id?: string | null
           content?: string
           created_at?: string
           deleted?: boolean
@@ -75,10 +107,19 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       profiles: {
         Row: {
+          company_id: string | null
           created_at: string
           display_name: string | null
           id: string
@@ -86,6 +127,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
@@ -93,13 +135,22 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

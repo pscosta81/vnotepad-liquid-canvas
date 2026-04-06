@@ -3,14 +3,31 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
+    "dev:electron": "concurrently \"vite\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "vite build",
+    "build:exe": "vite build && electron-builder",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "build": {
+    "appId": "com.vnotepad.app",
+    "productName": "VnotePad Setup",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "icon": "public/icon-512x512.png"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -64,6 +81,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.9",
     "vite-plugin-pwa": "^1.2.0",
+    "xlsx-populate": "^1.21.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -77,6 +95,9 @@
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
+    "electron": "^41.1.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -88,6 +109,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^9.0.4"
   }
 }
