@@ -20,6 +20,7 @@ interface SidebarProps {
   onSignOut?: () => void;
   userName?: string | null;
   onClearTrash?: () => void;
+  onOpenPricing?: () => void;
 }
 
 const defaultCategories = [
@@ -28,7 +29,7 @@ const defaultCategories = [
   { id: "trash", name: "Lixeira", icon: <Trash2 size={18} /> },
 ];
 
-const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash }: SidebarProps) => {
+const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash, onOpenPricing }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
 
@@ -155,6 +156,17 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
           <span>XLSX</span>
         </button>
       </div>
+
+      {/* Plan badge button */}
+      {onOpenPricing && (
+        <button
+          onClick={onOpenPricing}
+          className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all duration-200"
+        >
+          <Star size={12} />
+          <span>Ver Planos</span>
+        </button>
+      )}
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </aside>

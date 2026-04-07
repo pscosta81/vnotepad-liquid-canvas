@@ -7,7 +7,9 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ArrowLeft } from "lucide-react";
+import { Menu, ArrowLeft, AlertTriangle } from "lucide-react";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import PricingModal from "@/components/PricingModal";
 
 interface Note {
   id: string;
@@ -49,13 +51,16 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pricingOpen, setPricingOpen] = useState(false);
+
+  const { usageData, limitsLoading, canCreateNote } = usePlanLimits();
 
   // Load notes from DB
   useEffect(() => {
     if (user && user.user_metadata?.company_name) {
-      document.title = `VnotePad -- Premium @Registrado ${user.user_metadata.company_name}`;
+      document.title = `VnotePad -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
     } else {
-      document.title = "VnotePad -- Premium";
+      document.title = "VnotePad -- Premium Notes";
     }
 
     if (!user) return;
@@ -122,6 +127,11 @@ const Index = () => {
 
   const createNote = useCallback(async () => {
     if (!user) return;
+    if (usageData && !canCreateNote) {
+      setPricingOpen(true);
+      return;
+    }
+
     const category =
       activeCategory !== "all" && activeCategory !== "favorites" && activeCategory !== "trash"
         ? activeCategory
@@ -234,8 +244,39 @@ const Index = () => {
       onSignOut={signOut}
       userName={displayName}
       onClearTrash={clearTrash}
+      onOpenPricing={() => setPricingOpen(true)}
     />
   );
+
+  if (usageData?.isExpired) {
+    return (
+      <div className="carbon-fiber fixed inset-0 flex items-center justify-center p-4 z-50">
+        <div className="glass-panel neon-glow max-w-md w-full p-8 text-center animate-note-enter flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mb-2">
+            <AlertTriangle className="text-destructive w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-bold">Tempo Esgotado</h2>
+          <p className="text-muted-foreground">
+            O período de testes da sua empresa <strong>{usageData.company.name}</strong> chegou ao fim. As notas foram congeladas em modo de segurança.
+          </p>
+          <button 
+            onClick={() => setPricingOpen(true)}
+            className="btn-raised w-full mt-4 bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+          >
+            Escolher um Plano
+          </button>
+          
+          <button 
+            onClick={signOut}
+            className="text-sm text-muted-foreground mt-4 hover:text-foreground transition-colors"
+          >
+            Sair da Conta
+          </button>
+        </div>
+        <PricingModal open={pricingOpen} onOpenChange={setPricingOpen} />
+      </div>
+    );
+  }
 
   // Mobile layout
   if (isMobile) {
@@ -326,6 +367,7 @@ const Index = () => {
       </div>
 
       <AddTagDialog open={addTagOpen} onOpenChange={setAddTagOpen} onAdd={handleAddTag} />
+      <PricingModal open={pricingOpen} onOpenChange={setPricingOpen} />
     </div>
   );
 };
