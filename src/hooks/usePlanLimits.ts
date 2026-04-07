@@ -31,13 +31,29 @@ const PLAN_LIMITS_MAP: Record<string, PlanLimits> = {
 };
 
 
+const ADMIN_EMAIL = "psc.paulo81@gmail.com";
+
 export const usePlanLimits = () => {
   const { user } = useAuth();
+
+  // Admin always gets enterprise limits
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const { data: usageData, isLoading: limitsLoading } = useQuery({
     queryKey: ["user-usage-limits", user?.id],
     queryFn: async () => {
       if (!user) return null;
+
+      // Admin always gets enterprise unlimited access
+      if (isAdmin) {
+        return {
+          company: { plan_id: "enterprise", subscription_status: "active", trial_end: null, name: "Admin" },
+          limits: PLAN_LIMITS_MAP["enterprise"],
+          usage: { notes: 0, calendar: 0 },
+          isTrialActive: false,
+          isExpired: false,
+        };
+      }
 
       // 1. Fetch user's company and plan details
       const { data: profile } = await supabase

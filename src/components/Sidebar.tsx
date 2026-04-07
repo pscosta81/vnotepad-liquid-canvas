@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import ExportDialog from "./ExportDialog";
 import InviteDialog from "./InviteDialog";
 import logo from "@/assets/logo.png";
@@ -37,15 +38,34 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
   const [exportOpen, setExportOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const { isAdmin } = useAuth();
+  const { usageData } = usePlanLimits();
   const navigate = useNavigate();
+
+  // Trial countdown
+  const company = usageData?.company as any;
+  const isTrialing = company?.subscription_status === "trialing";
+  const daysLeft = isTrialing && company?.trial_end
+    ? Math.max(0, Math.ceil((new Date(company.trial_end).getTime() - Date.now()) / 86400000))
+    : null;
 
   return (
     <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
       {/* Greeting */}
       {userName && (
         <div className="text-center px-2 mb-1">
-          <p className="text-sm text-primary font-medium">Olá {userName}</p>
-          <p className="text-xs text-muted-foreground">Bem vindo a sua agenda pessoal</p>
+          {isAdmin ? (
+            <>
+              <p className="text-sm text-primary font-semibold">Olá, {userName} 👋</p>
+              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                Bem vindo à sua agenda pessoal<br />e área administrativa.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-primary font-medium">Olá, {userName}</p>
+              <p className="text-xs text-muted-foreground">Bem vindo à sua agenda pessoal</p>
+            </>
+          )}
         </div>
       )}
 
@@ -163,14 +183,32 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         </button>
       </div>
 
-      {/* Invite button */}
-      <button
-        onClick={() => setInviteOpen(true)}
-        className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all duration-200"
-      >
-        <UserPlus size={12} />
-        <span>Convidar Funcionário</span>
-      </button>
+      {/* Trial countdown — visible only for trial users */}
+      {isTrialing && daysLeft !== null && !isAdmin && (
+        <div className={`mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium border ${
+          daysLeft <= 2
+            ? "bg-red-500/10 text-red-400 border-red-500/20"
+            : daysLeft <= 5
+            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            : "bg-muted/20 text-muted-foreground border-border"
+        }`}>
+          <Clock size={12} className="shrink-0" />
+          <span>
+            {daysLeft === 0 ? "⚠️ Trial expira hoje!" : `Trial: ${daysLeft} dia${daysLeft !== 1 ? "s" : ""} restante${daysLeft !== 1 ? "s" : ""}`}
+          </span>
+        </div>
+      )}
+
+      {/* Invite button — hidden for admin */}
+      {!isAdmin && (
+        <button
+          onClick={() => setInviteOpen(true)}
+          className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all duration-200"
+        >
+          <UserPlus size={12} />
+          <span>Convidar Funcionário</span>
+        </button>
+      )}
 
       {/* Admin Panel button - only visible to admin */}
       {isAdmin && (
