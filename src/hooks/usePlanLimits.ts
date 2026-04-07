@@ -11,24 +11,25 @@ export interface PlanLimits {
 
 const PLAN_LIMITS_MAP: Record<string, PlanLimits> = {
   free: {
-    maxNotes: 20,
-    maxCalendarEvents: 10,
-    canExport: false,
-    canUseTeam: false,
+    maxNotes: 25,
+    maxCalendarEvents: 20,
+    canExport: true,
+    canUseTeam: true,
   },
   pro: {
-    maxNotes: null, // Unlimited
-    maxCalendarEvents: null,
+    maxNotes: 100,
+    maxCalendarEvents: 100,
     canExport: true,
-    canUseTeam: false,
+    canUseTeam: true,
   },
   enterprise: {
-    maxNotes: null,
+    maxNotes: null, // Unlimited
     maxCalendarEvents: null,
     canExport: true,
     canUseTeam: true,
   },
 };
+
 
 export const usePlanLimits = () => {
   const { user } = useAuth();

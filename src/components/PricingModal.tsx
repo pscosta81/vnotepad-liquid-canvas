@@ -19,11 +19,11 @@ const plans = [
     glowColor: "",
     icon: <Zap size={22} className="text-muted-foreground" />,
     features: [
-      { text: "Até 20 anotações", included: true },
-      { text: "Até 10 eventos no calendário", included: true },
-      { text: "Backup XLSX protegido", included: false },
-      { text: "Exportação de dados", included: false },
-      { text: "Suporte prioritário", included: false },
+      { text: "25 anotações", included: true },
+      { text: "20 eventos no calendário", included: true },
+      { text: "5 backups XLSX protegidos", included: true },
+      { text: "10 exportações de dados", included: true },
+      { text: "Até 5 funcionários", included: true },
     ],
     cta: "Plano Atual",
     ctaDisabled: true,
@@ -39,11 +39,11 @@ const plans = [
     glowColor: "shadow-[0_0_24px_rgba(var(--primary)/0.3)]",
     icon: <Star size={22} className="text-primary" />,
     features: [
-      { text: "Anotações ilimitadas", included: true },
-      { text: "Calendário ilimitado", included: true },
+      { text: "100 anotações", included: true },
+      { text: "100 eventos no calendário", included: true },
       { text: "Backup XLSX protegido", included: true },
       { text: "Exportação de dados", included: true },
-      { text: "Suporte prioritário", included: false },
+      { text: "Até 20 funcionários", included: true },
     ],
     cta: "Assinar Profissional",
     ctaDisabled: false,
@@ -65,12 +65,14 @@ const plans = [
       { text: "Backup XLSX protegido", included: true },
       { text: "Exportação de dados", included: true },
       { text: "Suporte prioritário 24h", included: true },
+      { text: "Até 100 funcionários", included: true },
     ],
     cta: "Assinar Empresarial",
     ctaDisabled: false,
     mpLink: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=dbfde7e6b8e346f9a6bf35f6042df2c3",
   },
 ];
+
 
 const PricingModal = ({ open, onOpenChange }: PricingModalProps) => {
   const { usageData } = usePlanLimits();
