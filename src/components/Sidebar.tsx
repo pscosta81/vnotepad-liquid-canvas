@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
 import ExportDialog from "./ExportDialog";
 import logo from "@/assets/logo.png";
 
@@ -32,6 +34,8 @@ const defaultCategories = [
 const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash, onOpenPricing }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <aside className="glass-panel neon-glow flex flex-col w-64 h-full p-4 gap-2">
@@ -156,6 +160,17 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
           <span>XLSX</span>
         </button>
       </div>
+
+      {/* Admin Panel button - only visible to admin */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate("/admin")}
+          className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all duration-200"
+        >
+          <ShieldCheck size={12} />
+          <span>Painel Admin</span>
+        </button>
+      )}
 
       {/* Plan badge button */}
       {onOpenPricing && (

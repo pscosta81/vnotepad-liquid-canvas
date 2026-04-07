@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   displayName: string | null;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   displayName: null,
+  isAdmin: false,
   signOut: async () => {},
 });
 
@@ -60,8 +62,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const isAdmin = session?.user?.email === "psc.paulo81@gmail.com";
+
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, displayName, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, displayName, isAdmin, signOut }}>
       {children}
     </AuthContext.Provider>
   );
