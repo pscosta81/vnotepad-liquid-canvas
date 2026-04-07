@@ -47,7 +47,7 @@ const plans = [
     ],
     cta: "Assinar Profissional",
     ctaDisabled: false,
-    mpLink: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=INSIRA_SEU_PLAN_ID_PRO",
+    mpLink: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=f92f126fe4fa4361b5cd3524cb54d724",
   },
   {
     id: "enterprise",
@@ -68,7 +68,7 @@ const plans = [
     ],
     cta: "Assinar Empresarial",
     ctaDisabled: false,
-    mpLink: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=INSIRA_SEU_PLAN_ID_ENTERPRISE",
+    mpLink: "https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=dbfde7e6b8e346f9a6bf35f6042df2c3",
   },
 ];
 
