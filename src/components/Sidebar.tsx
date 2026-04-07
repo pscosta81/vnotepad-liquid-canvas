@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import ExportDialog from "./ExportDialog";
+import InviteDialog from "./InviteDialog";
 import logo from "@/assets/logo.png";
 
 interface Category {
@@ -34,6 +35,7 @@ const defaultCategories = [
 const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash, onOpenPricing }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -161,6 +163,15 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         </button>
       </div>
 
+      {/* Invite button */}
+      <button
+        onClick={() => setInviteOpen(true)}
+        className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all duration-200"
+      >
+        <UserPlus size={12} />
+        <span>Convidar Funcionário</span>
+      </button>
+
       {/* Admin Panel button - only visible to admin */}
       {isAdmin && (
         <button
@@ -184,6 +195,7 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
       )}
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
     </aside>
   );
 };
