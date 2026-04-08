@@ -2,6 +2,12 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
 const isDev = !app.isPackaged;
 
+// Auto-updater (only in production)
+let autoUpdater;
+if (!isDev) {
+  try { autoUpdater = require('electron-updater').autoUpdater; } catch(e) {}
+}
+
 function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1280,
@@ -27,7 +33,42 @@ function createWindow() {
 
 app.whenReady().then(() => {
   ipcMain.handle('ping', () => 'pong');
-  
+
+  // ─── Auto-update logic (silent background check) ───
+  if (!isDev && autoUpdater) {
+    autoUpdater.autoDownload = true;        // download automatically
+    autoUpdater.autoInstallOnAppQuit = true; // install when user closes app
+
+    autoUpdater.on('update-available', (info) => {
+      // Notify renderer that update was found
+      BrowserWindow.getAllWindows().forEach(w =>
+        w.webContents.send('update-available', info.version)
+      );
+    });
+
+    autoUpdater.on('update-downloaded', () => {
+      // Notify renderer: ready to install
+      BrowserWindow.getAllWindows().forEach(w =>
+        w.webContents.send('update-downloaded')
+      );
+    });
+
+    autoUpdater.on('error', (err) => {
+      console.error('AutoUpdater error:', err?.message);
+    });
+
+    // Check for updates 3 seconds after startup (non-blocking)
+    setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+  }
+
+  // IPC: renderer can request immediate install
+  ipcMain.handle('install-update', () => {
+    if (autoUpdater) autoUpdater.quitAndInstall();
+  });
+  ipcMain.handle('check-update', () => {
+    if (autoUpdater) autoUpdater.checkForUpdates();
+  });
+
   ipcMain.handle('export-xlsx', async (event, data, pin) => {
     try {
       const { filePath } = await dialog.showSaveDialog({

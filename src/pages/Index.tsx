@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ArrowLeft, AlertTriangle } from "lucide-react";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PricingModal from "@/components/PricingModal";
+import useAutoUpdater from "@/hooks/useAutoUpdater";
 
 interface Note {
   id: string;
@@ -54,6 +55,8 @@ const Index = () => {
   const [pricingOpen, setPricingOpen] = useState(false);
 
   const { usageData, limitsLoading, canCreateNote } = usePlanLimits();
+  useAutoUpdater(); // silent background update check
+
 
   // Load notes from DB
   useEffect(() => {

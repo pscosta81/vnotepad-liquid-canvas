@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -9,6 +9,7 @@
     "dev:electron": "concurrently \"vite\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "vite build",
     "build:exe": "vite build && electron-builder",
+    "build:release": "vite build && electron-builder --win --publish always",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -17,12 +18,25 @@
   },
   "build": {
     "appId": "com.vnotepad.app",
-    "productName": "VnotePad Setup",
+    "productName": "VnotePad",
     "directories": {
       "output": "dist-electron"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "pscosta81",
+      "repo": "vnotepad-liquid-canvas",
+      "private": false
+    },
     "win": {
-      "icon": "public/icon-512x512.png"
+      "icon": "public/icon-512x512.png",
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": ["pt_BR"],
+      "language": "1046"
     },
     "files": [
       "dist/**/*",
@@ -65,6 +79,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "electron-updater": "^6.8.3",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
