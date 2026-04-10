@@ -8,6 +8,9 @@ interface AuthContextType {
   loading: boolean;
   displayName: string | null;
   isAdmin: boolean;
+  isLocked: boolean;
+  lockApp: () => void;
+  unlockApp: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -17,6 +20,9 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   displayName: null,
   isAdmin: false,
+  isLocked: false,
+  lockApp: () => {},
+  unlockApp: () => {},
   signOut: async () => {},
 });
 
@@ -26,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
 
   const fetchDisplayName = async (userId: string) => {
     const { data } = await supabase
@@ -59,13 +66,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    setIsLocked(false);
     await supabase.auth.signOut();
+  };
+
+  const lockApp = () => {
+    if (session?.user) {
+      setIsLocked(true);
+    }
+  };
+
+  const unlockApp = () => {
+    setIsLocked(false);
   };
 
   const isAdmin = session?.user?.email === "psc.paulo81@gmail.com";
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, displayName, isAdmin, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, displayName, isAdmin, isLocked, lockApp, unlockApp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

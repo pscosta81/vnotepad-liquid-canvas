@@ -11,6 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
+  const [pin, setPin] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ const Login = () => {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: name, company_name: company },
+            data: { full_name: name, company_name: company, pin: pin },
           },
         });
         if (error) throw error;
@@ -134,6 +135,20 @@ const Login = () => {
                   required
                   className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
                     company.length > 0 ? "input-raised" : "input-inset"
+                  }`}
+                />
+              </div>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" />
+                <input
+                  type="text"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="PIN de Segurança (4 números)"
+                  required
+                  maxLength={4}
+                  className={`w-full bg-muted/30 border border-border rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none input-glow ${
+                    pin.length > 0 ? "input-raised" : "input-inset"
                   }`}
                 />
               </div>

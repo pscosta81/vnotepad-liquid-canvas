@@ -11,6 +11,7 @@ import { Menu, ArrowLeft, AlertTriangle } from "lucide-react";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PricingModal from "@/components/PricingModal";
 import useAutoUpdater from "@/hooks/useAutoUpdater";
+import LockScreen from "@/components/LockScreen";
 
 interface Note {
   id: string;
@@ -37,7 +38,7 @@ const DEFAULT_TAG_COLORS: Record<string, string> = {
 };
 
 const Index = () => {
-  const { user, signOut, displayName } = useAuth();
+  const { user, signOut, displayName, isLocked, lockApp } = useAuth();
   const isMobile = useIsMobile();
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,22 +65,22 @@ const Index = () => {
 
     const handleLock = () => {
       console.log("App minimized - locking system for security.");
-      signOut();
+      lockApp();
     };
 
     ipc.on("lock-app", handleLock);
     return () => {
       ipc.removeListener("lock-app", handleLock);
     };
-  }, [signOut]);
+  }, [lockApp]);
 
 
   // Load notes from DB
   useEffect(() => {
     if (user && user.user_metadata?.company_name) {
-      document.title = `VnotePad v1.0.3 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
+      document.title = `VnotePad v1.0.4 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
     } else {
-      document.title = "VnotePad v1.0.3 -- Premium Notes";
+      document.title = "VnotePad v1.0.4 -- Premium Notes";
     }
 
     if (!user) return;
@@ -266,6 +267,10 @@ const Index = () => {
       onOpenPricing={() => setPricingOpen(true)}
     />
   );
+
+  if (isLocked) {
+    return <LockScreen />;
+  }
 
   if (usageData?.isExpired) {
     return (

@@ -1,0 +1,102 @@
+===============================================================================
+                       VNOTEPAD - MANUAL DO USUÁRIO
+===============================================================================
+Versão: 1.0.3
+Descrição: Bloco de Notas Premium com Design Liquid Glass e Fibra de Carbono.
+
+Este manual fornece uma visão detalhada de todas as funcionalidades, segurança
+e como tirar o melhor proveito da sua experiência com o VnotePad.
+
+-------------------------------------------------------------------------------
+1. VISÃO GERAL E FILOSOFIA
+-------------------------------------------------------------------------------
+O VnotePad foi desenvolvido para quem busca uma ferramenta de produtividade que
+une estética de luxo e segurança rigorosa. Inspirado em cockpits modernos, o
+design utiliza fibra de carbono e o efeito "Liquid Glass" (vidro líquido) para
+criar uma interface imersiva e profissional.
+
+-------------------------------------------------------------------------------
+2. PONTOS POSITIVOS (POR QUE USAR O VNOTEPAD?)
+-------------------------------------------------------------------------------
+* PRIVACIDADE EXTREMA: O único app que se bloqueia automaticamente ao ser
+  minimizado, protegendo suas informações de olhares curiosos no escritório.
+* ESTÉTICA PREMIUM: Interface futurista com animações suaves e micro-interações.
+* NATIVO E LEVE: Funciona como um aplicativo de desktop real, não apenas um site.
+* BACKUP INTELIGENTE: Exporte tudo diretamente para Excel com segurança por senha.
+* SINCRONIZAÇÃO EM NUVEM: Suas notas estão seguras no servidor e acessíveis em 
+  qualquer computador onde o app for instalado.
+
+-------------------------------------------------------------------------------
+3. FUNCIONALIDADES DETALHADAS
+-------------------------------------------------------------------------------
+
+A. GESTÃO DE NOTAS
+   - Criação Rápida: Adicione novas ideias com um único clique no menu lateral.
+   - Editor Inteligente: Textarea que se expande automaticamente conforme você escreve.
+   - Favoritos: Clique na estrela para destacar suas notas mais importantes.
+   - Categorias (Tags): Organize seu fluxo com etiquetas coloridas.
+   - Exportação Individual: Salve notas específicas como arquivos .txt para uso externo.
+
+B. CALENDÁRIO INTEGRADO
+   - Planejamento Diário: Selecione qualquer dia no calendário para salvar avisos,
+     lembretes ou diário de bordo.
+   - Marcadores de Prioridade: Use cores (Verde, Amarelo, Vermelho) para definir
+     o status de cada dia.
+   - Indicadores Visuais: Dias com conteúdo exibem um marcador luminoso abaixo da data.
+
+C. CENTRAL DE SEGURANÇA (BLOQUEIO AUTOMÁTICO)
+   - O aplicativo monitora o estado da janela. Sempre que você minimizar o app 
+     ou trocar de janela de forma brusca, ele fará o logout automático por segurança.
+   - Requer o seu PIN para retornar, garantindo que suas notas nunca fiquem expostas.
+
+D. EXPORTAÇÃO E BACKUP (EXCEL)
+   - Localizado no menu de "Configurações" ou ícone de Download Global.
+   - Gera um arquivo .xlsx profissional com múltiplas abas (Notas e Calendário).
+   - Segurança: O arquivo gerado é protegido pela sua senha (PIN), impedindo
+     que estranhos abram o arquivo de backup.
+
+E. PAINEL ADMINISTRATIVO (CONVITES)
+   - Permite convidar novos membros para a organização diretamente pelo app.
+   - Gestão de planos e limites de uso.
+
+-------------------------------------------------------------------------------
+4. GUIA PASSO A PASSO PARA INICIANTES
+-------------------------------------------------------------------------------
+
+PASSO 1: LOGIN
+Ao abrir o app, insira seu e-mail e seu PIN de segurança. Se estiver em uma 
+empresa parceira, o nome da sua organização aparecerá na barra de título.
+
+PASSO 2: CRIANDO SUA PRIMEIRA NOTA
+No painel lateral esquerdo, clique em "Nova Nota". Dê um título e comece a 
+escrever no campo central. Suas alterações são salvas automaticamente na nuvem.
+
+PASSO 3: ORGANIZAÇÃO
+Atribua uma categoria (tag) no topo da nota para facilitar a filtragem lateral. 
+Se for algo urgente, marque como Favorito (Estrela).
+
+PASSO 4: USANDO O CALENDÁRIO
+No canto inferior direito, você verá o calendário. Clique em uma data, escolha 
+a cor de urgência e escreva seu compromisso. Clique em "Salvar".
+
+PASSO 5: EXPORTANDO PARA BACKUP
+Quando quiser levar seus dados para outro lugar, vá em "Exportar Dados". Isso 
+baixará uma planilha Excel completa com tudo o que você escreveu até hoje.
+
+-------------------------------------------------------------------------------
+5. DICAS PRO
+-------------------------------------------------------------------------------
+* Atalho de Segurança: Se alguém se aproximar da sua mesa, basta minimizar o 
+  app (tecla Windows + D) e ele será bloqueado instantaneamente.
+* Categorização: Use a cor Vermelha no calendário para prazos críticos e Verde 
+  para tarefas concluídas.
+
+-------------------------------------------------------------------------------
+SUPORTE E ATUALIZAÇÕES
+-------------------------------------------------------------------------------
+O VnotePad verifica atualizações sempre que é iniciado. Se uma nova versão 
+estiver disponível, você será notificado para baixar a melhoria mais recente.
+
+===============================================================================
+                        FIM DO MANUAL - VNOTEPAD
+===============================================================================
