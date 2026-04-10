@@ -17,7 +17,8 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
+    // Disable PWA for Electron as Service Workers don't work well with file:// protocol
+    !process.env.VITE_ELECTRON && VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon-192x192.png", "icon-512x512.png", "apple-touch-icon.png"],
       manifest: {
@@ -41,6 +42,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

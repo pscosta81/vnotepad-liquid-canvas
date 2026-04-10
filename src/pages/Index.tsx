@@ -57,13 +57,29 @@ const Index = () => {
   const { usageData, limitsLoading, canCreateNote } = usePlanLimits();
   useAutoUpdater(); // silent background update check
 
+  // Security: Lock app on minimize
+  useEffect(() => {
+    const ipc = (window as any).electron;
+    if (!ipc) return;
+
+    const handleLock = () => {
+      console.log("App minimized - locking system for security.");
+      signOut();
+    };
+
+    ipc.on("lock-app", handleLock);
+    return () => {
+      ipc.removeListener("lock-app", handleLock);
+    };
+  }, [signOut]);
+
 
   // Load notes from DB
   useEffect(() => {
     if (user && user.user_metadata?.company_name) {
-      document.title = `VnotePad -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
+      document.title = `VnotePad v1.0.3 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
     } else {
-      document.title = "VnotePad -- Premium Notes";
+      document.title = "VnotePad v1.0.3 -- Premium Notes";
     }
 
     if (!user) return;

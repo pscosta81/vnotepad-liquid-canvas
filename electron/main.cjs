@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
 const isDev = !app.isPackaged;
+const indexPath = path.join(__dirname, '../dist/index.html');
 
 // Auto-updater (only in production)
 let autoUpdater;
@@ -14,7 +15,7 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
-    title: "VnotePad -- Premium",
+    title: `VnotePad v${app.getVersion()} -- Premium`,
     icon: path.join(__dirname, '../public/icon-512x512.png'),
     autoHideMenuBar: true,
     webPreferences: {
@@ -27,8 +28,20 @@ function createWindow() {
   if (isDev) {
     mainWindow.loadURL('http://localhost:8080/');
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(indexPath).catch(err => {
+      console.error('Failed to load local index.html:', err);
+      // Fallback if the path is slightly different in some packaged environments
+      const fallbackPath = path.join(process.resourcesPath, 'app', 'dist', 'index.html');
+      mainWindow.loadFile(fallbackPath).catch(err2 => {
+        console.error('Failed fallback load:', err2);
+      });
+    });
   }
+
+  // Security: lock app when minimized
+  mainWindow.on('minimize', () => {
+    mainWindow.webContents.send('lock-app');
+  });
 }
 
 app.whenReady().then(() => {
@@ -36,29 +49,38 @@ app.whenReady().then(() => {
 
   // ─── Auto-update logic (silent background check) ───
   if (!isDev && autoUpdater) {
-    autoUpdater.autoDownload = true;        // download automatically
-    autoUpdater.autoInstallOnAppQuit = true; // install when user closes app
+    try {
+      autoUpdater.autoDownload = true;
+      autoUpdater.autoInstallOnAppQuit = true;
 
-    autoUpdater.on('update-available', (info) => {
-      // Notify renderer that update was found
-      BrowserWindow.getAllWindows().forEach(w =>
-        w.webContents.send('update-available', info.version)
-      );
-    });
+      autoUpdater.on('update-available', (info) => {
+        console.log('Update available:', info.version);
+        BrowserWindow.getAllWindows().forEach(w =>
+          w.webContents.send('update-available', info.version)
+        );
+      });
 
-    autoUpdater.on('update-downloaded', () => {
-      // Notify renderer: ready to install
-      BrowserWindow.getAllWindows().forEach(w =>
-        w.webContents.send('update-downloaded')
-      );
-    });
+      autoUpdater.on('update-downloaded', () => {
+        console.log('Update downloaded and ready to install.');
+        BrowserWindow.getAllWindows().forEach(w =>
+          w.webContents.send('update-downloaded')
+        );
+      });
 
-    autoUpdater.on('error', (err) => {
-      console.error('AutoUpdater error:', err?.message);
-    });
+      autoUpdater.on('error', (err) => {
+        console.error('AutoUpdater error:', err?.message || err);
+      });
 
-    // Check for updates 3 seconds after startup (non-blocking)
-    setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+      // Check for updates 5 seconds after startup (non-blocking)
+      setTimeout(() => {
+        console.log('Checking for updates...');
+        autoUpdater.checkForUpdates().catch(err => {
+          console.error('Manual check error:', err?.message);
+        });
+      }, 5000);
+    } catch (err) {
+      console.error('Failed to initialize autoUpdater:', err);
+    }
   }
 
   // IPC: renderer can request immediate install
