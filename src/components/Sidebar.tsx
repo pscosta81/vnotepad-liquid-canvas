@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus, Clock } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus, Clock, RefreshCw, Download, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
@@ -25,6 +25,7 @@ interface SidebarProps {
   userName?: string | null;
   onClearTrash?: () => void;
   onOpenPricing?: () => void;
+  updateStatus?: "idle" | "checking" | "downloading" | "ready" | "error";
 }
 
 const defaultCategories = [
@@ -33,7 +34,7 @@ const defaultCategories = [
   { id: "trash", name: "Lixeira", icon: <Trash2 size={18} /> },
 ];
 
-const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash, onOpenPricing }: SidebarProps) => {
+const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, onDeleteCategory, noteCount, onSignOut, userName, onClearTrash, onOpenPricing, updateStatus = "idle" }: SidebarProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -70,9 +71,17 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
       )}
 
       {/* Logo + Name */}
-      <div className="flex flex-col items-center px-2 py-3 mb-4">
-        <img src={logo} alt="VnotePad" className="w-32 h-32 animate-logo" />
-        <span className="text-lg font-semibold text-foreground tracking-tight mt-2">VnotePad</span>
+      <div className="flex flex-col items-center px-2 py-3 mb-2">
+        <img src={logo} alt="VnotePad" className="w-24 h-24 animate-logo" />
+        <span className="text-lg font-semibold text-foreground tracking-tight mt-2 flex items-center gap-2">
+          VnotePad
+        </span>
+        <div className="flex items-center gap-1.5 mt-1 bg-muted/40 px-2 py-0.5 rounded-full border border-border/50 text-[10px] text-muted-foreground font-medium">
+          <span>v1.0.5</span>
+          {updateStatus === "checking" && <RefreshCw size={10} className="animate-spin text-primary" title="Buscando atualizações..." />}
+          {updateStatus === "downloading" && <Download size={10} className="animate-bounce text-primary" title="Baixando atualização..." />}
+          {updateStatus === "ready" && <CheckCircle2 size={10} className="text-green-500" title="Pronto para instalar" />}
+        </div>
       </div>
 
       {/* Default categories */}

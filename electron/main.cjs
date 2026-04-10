@@ -53,10 +53,23 @@ app.whenReady().then(() => {
       autoUpdater.autoDownload = true;
       autoUpdater.autoInstallOnAppQuit = true;
 
+      autoUpdater.on('checking-for-update', () => {
+        BrowserWindow.getAllWindows().forEach(w =>
+          w.webContents.send('checking-for-update')
+        );
+      });
+
       autoUpdater.on('update-available', (info) => {
         console.log('Update available:', info.version);
         BrowserWindow.getAllWindows().forEach(w =>
           w.webContents.send('update-available', info.version)
+        );
+      });
+
+      autoUpdater.on('update-not-available', () => {
+        console.log('Update not available.');
+        BrowserWindow.getAllWindows().forEach(w =>
+          w.webContents.send('update-not-available')
         );
       });
 
@@ -69,6 +82,9 @@ app.whenReady().then(() => {
 
       autoUpdater.on('error', (err) => {
         console.error('AutoUpdater error:', err?.message || err);
+        BrowserWindow.getAllWindows().forEach(w =>
+          w.webContents.send('update-error', err?.message)
+        );
       });
 
       // Check for updates 5 seconds after startup (non-blocking)

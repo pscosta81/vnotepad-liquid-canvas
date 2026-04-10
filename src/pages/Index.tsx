@@ -56,7 +56,7 @@ const Index = () => {
   const [pricingOpen, setPricingOpen] = useState(false);
 
   const { usageData, limitsLoading, canCreateNote } = usePlanLimits();
-  useAutoUpdater(); // silent background update check
+  const updateStatus = useAutoUpdater(); // status da atualização
 
   // Security: Lock app on minimize
   useEffect(() => {
@@ -78,9 +78,9 @@ const Index = () => {
   // Load notes from DB
   useEffect(() => {
     if (user && user.user_metadata?.company_name) {
-      document.title = `VnotePad v1.0.4 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
+      document.title = `VnotePad v1.0.5 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
     } else {
-      document.title = "VnotePad v1.0.4 -- Premium Notes";
+      document.title = "VnotePad v1.0.5 -- Premium Notes";
     }
 
     if (!user) return;
@@ -265,6 +265,7 @@ const Index = () => {
       userName={displayName}
       onClearTrash={clearTrash}
       onOpenPricing={() => setPricingOpen(true)}
+      updateStatus={updateStatus}
     />
   );
 
