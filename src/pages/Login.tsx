@@ -16,6 +16,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [claimMode, setClaimMode] = useState(false);
   const navigate = useNavigate();
   const { session } = useAuth();
 
@@ -30,13 +31,42 @@ const Login = () => {
     setLoading(true);
 
     try {
+      if (claimMode) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { 
+              full_name: email.split('@')[0], 
+              pin: "0000" 
+            },
+          },
+        });
+        if (signUpError) throw signUpError;
+
+        // Marca convite como utilizado
+        await supabase
+          .from("invites")
+          .update({ is_claimed: true })
+          .eq("email", email.trim().toLowerCase());
+
+        setMessage("✓ Conta ativada com sucesso! Agora você já pode fazer login.");
+        setClaimMode(false);
+        setPassword("");
+        return;
+      }
+
       if (isSignUp) {
         const { error, data } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: name, company_name: company, pin: pin },
+            data: { 
+              full_name: name || email.split('@')[0], 
+              company_name: (company || "Minha Empresa").trim().toUpperCase(), 
+              pin: pin || "0000" 
+            },
           },
         });
         if (error) throw error;
@@ -47,10 +77,30 @@ const Login = () => {
         }
         setMessage("Verifique seu email para confirmar o cadastro.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (signInError) {
+          // INTERCEPTADORA DE CONVITE: Verifica se é uma senha temporária
+          const { data: invite } = await supabase
+            .from("invites")
+            .select("id, company_id, temp_password")
+            .eq("email", email.trim().toLowerCase())
+            .eq("temp_password", password.trim())
+            .eq("is_claimed", false)
+            .maybeSingle();
+
+          if (invite) {
+            setClaimMode(true);
+            setMessage("Convite Validado! Agora escolha sua senha definitiva para ativar sua conta.");
+            setPassword(""); // Limpa a senha temporária para digitar a nova
+            return;
+          }
+          
+          throw signInError;
+        }
       }
     } catch (err: any) {
+      console.error("Auth error:", err);
       setError(err.message || "Erro na autenticação");
     } finally {
       setLoading(false);
@@ -181,15 +231,30 @@ const Login = () => {
               }`}
             />
           </div>
+
+          {claimMode && (
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-[11px] text-emerald-400 animate-in fade-in zoom-in duration-300">
+              ✓ Convite validado! Agora, <b>defina sua senha permanente</b> acima para ativar seu acesso à empresa.
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="btn-raised flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50"
           >
             <LogIn size={16} />
-            {isSignUp ? "Criar Conta" : "Entrar"}
+            {claimMode ? "Ativar Minha Conta" : isSignUp ? "Criar Conta" : "Entrar"}
           </button>
         </form>
+
+        {claimMode && (
+          <button
+            onClick={() => { setClaimMode(false); setMessage(""); }}
+            className="text-xs text-primary hover:underline transition-all"
+          >
+            Cancelar e voltar
+          </button>
+        )}
 
         {error && <p className="text-sm text-destructive text-center">{error}</p>}
         {message && <p className="text-sm text-secondary text-center">{message}</p>}

@@ -77,10 +77,15 @@ const Index = () => {
 
   // Load notes from DB
   useEffect(() => {
-    if (user && user.user_metadata?.company_name) {
-      document.title = `VnotePad v1.0.5 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
-    } else {
-      document.title = "VnotePad v1.0.5 -- Premium Notes";
+    if (user) {
+      const isAdmin = user.email === "psc.paulo81@gmail.com";
+      if (isAdmin && !user.user_metadata?.company_name) {
+        document.title = `VnotePad v1.0.5 -- MODO ADMINISTRADOR`;
+      } else if (user.user_metadata?.company_name) {
+        document.title = `VnotePad v1.0.5 -- Premium Notes @Registrado ${user.user_metadata.company_name}`;
+      } else {
+        document.title = "VnotePad v1.0.5 -- Premium Notes";
+      }
     }
 
     if (!user) return;
@@ -282,7 +287,7 @@ const Index = () => {
           </div>
           <h2 className="text-2xl font-bold">Tempo Esgotado</h2>
           <p className="text-muted-foreground">
-            O período de testes da sua empresa <strong>{usageData.company.name}</strong> chegou ao fim. As notas foram congeladas em modo de segurança.
+            O período de testes da sua empresa <strong>{usageData?.company?.name || 'Não Identificada'}</strong> chegou ao fim. As notas foram congeladas em modo de segurança.
           </p>
           <button 
             onClick={() => setPricingOpen(true)}

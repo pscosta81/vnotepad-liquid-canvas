@@ -44,41 +44,29 @@ export const usePlanLimits = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      // Admin always gets enterprise unlimited access
-      if (isAdmin) {
-        return {
-          company: { plan_id: "enterprise", subscription_status: "active", trial_end: null, name: "Admin" },
-          limits: PLAN_LIMITS_MAP["enterprise"],
-          usage: { notes: 0, calendar: 0 },
-          isTrialActive: false,
-          isExpired: false,
-        };
-      }
-
       // 1. Fetch user's company and plan details
       const { data: profile } = await supabase
         .from("profiles")
         .select(`
           company_id,
-          companies:company_id(plan_id, subscription_status, trial_end)
+          companies:company_id(id, name, plan_id, subscription_status, trial_end)
         `)
         .eq("user_id", user.id)
         .single();
       
       const company = profile?.companies as any;
-      if (!company) return null;
+      
+      // Se não for admin e não tiver empresa, retorna null
+      if (!company && !isAdmin) return null;
 
-      // 2. Determine active plan (if trial expired and not paid, fallback to empty or handle lock)
+      // 2. Determine active plan
       const now = new Date();
-      const trialEnd = new Date(company.trial_end);
-      const isTrialActive = company.subscription_status === 'trialing' && trialEnd > now;
-      const isPaidActive = company.subscription_status === 'active';
-      const isExpired = !isTrialActive && !isPaidActive;
+      const trialEnd = company?.trial_end ? new Date(company.trial_end) : new Date(0);
+      const isTrialActive = company?.subscription_status === 'trialing' && trialEnd > now;
+      const isPaidActive = company?.subscription_status === 'active';
+      const isExpired = !isAdmin && !isTrialActive && !isPaidActive;
 
-      const basePlan = company.plan_id || 'free';
-      // MOCK: If it's active trial, allow them to act as fully unlimited 'enterprise' for 7 days? 
-      // The user requested: "Limites no trial limit the quantity of functionality like amount of notes, amount of calendar".
-      // So trial behaves like 'free' plan but works for 7/30 days. When expired, it throws error or locks.
+      const basePlan = isAdmin ? 'enterprise' : (company?.plan_id || 'free');
       const limits = PLAN_LIMITS_MAP[basePlan] || PLAN_LIMITS_MAP['free'];
 
       // 3. Current Usage Counters

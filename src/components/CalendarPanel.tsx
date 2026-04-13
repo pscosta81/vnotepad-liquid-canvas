@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
+import { toast } from "sonner";
 
 interface CalendarEntry {
   entry_date: string;
@@ -56,6 +57,9 @@ const CalendarPanel = () => {
           });
           setEntries(map);
         }
+      })
+      .catch(err => {
+        console.error("Erro ao carregar entradas do calendário:", err);
       });
   }, [user, year, month, daysInMonth]);
 
@@ -75,19 +79,43 @@ const CalendarPanel = () => {
     if (!user || !selectedDay) return;
     const key = dateKey(selectedDay);
 
-    const { data } = await supabase
-      .from("calendar_entries")
-      .upsert(
-        { user_id: user.id, entry_date: key, content: editContent, color: editColor },
-        { onConflict: "user_id,entry_date" }
-      )
-      .select()
-      .single();
+    try {
+      console.log("Salvando entrada no calendário:", { key, content: editContent, color: editColor });
+      
+      const { data, error } = await supabase
+        .from("calendar_entries")
+        .upsert(
+          { 
+            user_id: user.id, 
+            entry_date: key, 
+            content: editContent, 
+            color: editColor 
+          },
+          { onConflict: "user_id,entry_date" }
+        )
+        .select()
+        .single();
 
-    if (data) {
-      setEntries((prev) => ({ ...prev, [key]: { entry_date: key, content: editContent, color: editColor } }));
+      if (error) {
+        console.error("Erro do Supabase ao salvar no calendário:", error);
+        toast.error("Erro ao salvar anotação: " + (error.message || "Erro desconhecido"));
+        return;
+      }
+
+      if (data) {
+        setEntries((prev) => ({ ...prev, [key]: { entry_date: key, content: editContent, color: editColor } }));
+        toast.success("Anotação salva com sucesso!");
+      } else {
+        // Fallback caso o data venha nulo mas não haja erro (raro no upsert com select)
+        setEntries((prev) => ({ ...prev, [key]: { entry_date: key, content: editContent, color: editColor } }));
+        toast.info("Anotação processada.");
+      }
+      
+      setSelectedDay(null);
+    } catch (err) {
+      console.error("Exceção ao salvar no calendário:", err);
+      toast.error("Ocorreu um erro inesperado ao salvar.");
     }
-    setSelectedDay(null);
   }, [user, selectedDay, editContent, editColor, year, month]);
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));

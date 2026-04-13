@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus, Clock, RefreshCw, Download, CheckCircle2 } from "lucide-react";
+import { Plus, Hash, Inbox, Star, Trash2, LogOut, X, FileSpreadsheet, ShieldCheck, UserPlus, Clock, RefreshCw, Download, CheckCircle2, CloudDownload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import ThemeToggle from "./ThemeToggle";
 import ExportDialog from "./ExportDialog";
 import InviteDialog from "./InviteDialog";
 import logo from "@/assets/logo.png";
@@ -38,7 +39,7 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const { isAdmin } = useAuth();
+  const { isAdmin, role } = useAuth();
   const { usageData } = usePlanLimits();
   const navigate = useNavigate();
 
@@ -76,11 +77,22 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         <span className="text-lg font-semibold text-foreground tracking-tight mt-2 flex items-center gap-2">
           VnotePad
         </span>
-        <div className="flex items-center gap-1.5 mt-1 bg-muted/40 px-2 py-0.5 rounded-full border border-border/50 text-[10px] text-muted-foreground font-medium">
+        <div className="flex items-center gap-1.5 mt-1 bg-muted/40 px-2 py-0.5 rounded-full border border-border/50 text-[10px] text-muted-foreground font-medium relative group">
           <span>v1.0.5</span>
           {updateStatus === "checking" && <RefreshCw size={10} className="animate-spin text-primary" title="Buscando atualizações..." />}
-          {updateStatus === "downloading" && <Download size={10} className="animate-bounce text-primary" title="Baixando atualização..." />}
+          {(updateStatus === "downloading" || updateStatus === "ready") && (
+            <div className="absolute -right-1 -top-1">
+              <CloudDownload 
+                size={16} 
+                className={`animate-download-pulse drop-shadow-[0_0_8px_rgba(6,182,212,0.6)] cursor-pointer`}
+                title={updateStatus === "ready" ? "Nova versão pronta para instalar!" : "Baixando nova versão..."}
+              />
+            </div>
+          )}
           {updateStatus === "ready" && <CheckCircle2 size={10} className="text-green-500" title="Pronto para instalar" />}
+          {isAdmin && !company && (
+            <span className="ml-1 text-primary font-bold">ADMIN</span>
+          )}
         </div>
       </div>
 
@@ -170,6 +182,12 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         ))}
       </nav>
 
+      {/* Theme Toggle */}
+      <div className="flex items-center justify-between px-3 mt-2 mb-1">
+        <span className="text-sm text-muted-foreground group">Tema</span>
+        <ThemeToggle />
+      </div>
+
       {/* Sign out and Export button */}
       <div className="flex items-center gap-2 mt-2">
         {onSignOut && (
@@ -208,8 +226,8 @@ const Sidebar = ({ categories, activeCategory, onCategoryChange, onAddCategory, 
         </div>
       )}
 
-      {/* Invite button — hidden for admin */}
-      {!isAdmin && (
+      {/* Invite button — only for company owners */}
+      {!isAdmin && role === 'owner' && (
         <button
           onClick={() => setInviteOpen(true)}
           className="mx-1 mb-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/20 transition-all duration-200"

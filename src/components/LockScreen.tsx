@@ -8,20 +8,20 @@ const LockScreen = () => {
   const [error, setError] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [shake, setShake] = useState(false);
-  const { user, isAdmin, unlockApp, signOut } = useAuth();
+  const { user, isAdmin, userPin, unlockApp, signOut } = useAuth();
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Determinar o PIN correto
-    let correctPin = user?.user_metadata?.pin;
+    // Determinar o PIN correto (prioridade para o do banco de dados)
+    let correctPin = userPin || user?.user_metadata?.pin;
     
     // Se não tiver PIN cadastrado mas for admin, default é 0000
-    if (isAdmin) {
+    if (isAdmin && !correctPin) {
       correctPin = "0000";
     } else if (!correctPin) {
-      // Fallback para contas antigas que não criaram PIN = 0000
+      // Fallback para contas antigas
       correctPin = "0000";
     }
 

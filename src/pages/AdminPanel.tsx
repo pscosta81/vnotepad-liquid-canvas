@@ -41,34 +41,88 @@ const PLAN_CONFIG: Record<string, { label: string; color: string; price: number 
 const AdminPanel = ({ onBack }: { onBack: () => void }) => {
   const { user, session } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  if (user?.email !== ADMIN_EMAIL) {
-    return (
-      <div className="carbon-fiber fixed inset-0 flex items-center justify-center">
-        <p className="text-destructive">Acesso negado.</p>
-      </div>
-    );
-  }
-
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setErrorStatus(null);
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-data`, {
-        headers: { Authorization: `Bearer ${session?.access_token}` },
+      console.log("Fetching admin data directly from database...");
+      
+      // 1. Fetch Companies
+      const { data: companiesData, error: compErr } = await supabase
+        .from("companies")
+        .select("*")
+        .order("created_at", { ascending: false });
+        
+      if (compErr) throw compErr;
+
+      // 2. Fetch Profiles for all users to count them and get names
+      const { data: profilesData, error: profErr } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, company_id");
+
+      if (profErr) throw profErr;
+
+      // 3. Fetch aggregates for notes and calendars (We just need counts per company)
+      const { data: notesData } = await supabase.from("notes").select("company_id, id").eq("deleted", false);
+      const { data: calendarData } = await supabase.from("calendar_entries").select("company_id, id");
+
+      // 4. Assemble the data locally
+      const enrichedCompanies = (companiesData || []).map(comp => {
+        const compProfiles = (profilesData || []).filter(p => p.company_id === comp.id);
+        const compNotes = (notesData || []).filter(n => n.company_id === comp.id);
+        const compCals = (calendarData || []).filter(c => c.company_id === comp.id);
+
+        return {
+          ...comp,
+          user_count: compProfiles.length,
+          notes_count: compNotes.length,
+          calendar_count: compCals.length,
+          users: compProfiles.map(p => ({
+            id: p.user_id,
+            email: "Acesso Protegido", // By default we can't see auth.users emails easily, use display name
+            display_name: p.display_name || "Desconhecido"
+          }))
+        };
       });
-      const data = await res.json();
-      setCompanies(data.companies ?? []);
-    } catch (e) {
-      console.error(e);
+
+      console.log(`Sucesso! Encontrado ${companiesData?.length || 0} empresas e ${profilesData?.length || 0} perfis.`);
+      
+      if (!companiesData || companiesData.length === 0) {
+        console.warn("O banco retornou ZERO empresas. Verifique se existem registros na tabela 'companies'.");
+      }
+
+      setCompanies(enrichedCompanies as any);
+    } catch (e: any) {
+      console.error("Admin fetch error:", e);
+      setErrorStatus(`Erro: ${e.message || "Falha ao carregar dados"}. Dica: Verifique as políticas de RLS.`);
     } finally {
       setLoading(false);
     }
   }, [session]);
+
+  const handleRename = async (id: string, newName: string) => {
+    if (!newName.trim()) return;
+    setActionLoading(id + 'rename');
+    try {
+      const { error } = await supabase
+        .from("companies")
+        .update({ name: newName.trim().toUpperCase() })
+        .eq("id", id);
+      if (error) throw error;
+      setCompanies(prev => prev.map(c => c.id === id ? { ...c, name: newName.trim().toUpperCase() } : c));
+    } catch (e: any) {
+      alert("Erro ao renomear: " + e.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -187,12 +241,33 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
           </div>
         </div>
 
+        {/* Error Handling Display */}
+        {errorStatus && (
+          <div className="glass-panel border-red-500/30 bg-red-500/10 p-4 rounded-xl flex items-center gap-3 text-red-400">
+            <XCircle size={20} />
+            <div className="flex-1">
+              <p className="font-semibold text-sm">Erro ao carregar dados</p>
+              <p className="text-xs opacity-80">{errorStatus}</p>
+            </div>
+            <button 
+              onClick={fetchData} 
+              className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-xs font-medium transition-all"
+            >
+              Tentar Novamente
+            </button>
+          </div>
+        )}
+
         {/* Companies Table */}
         <div className="glass-panel rounded-xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
               <RefreshCw size={16} className="animate-spin mr-2" /> Carregando dados...
             </div>
+          ) : errorStatus ? (
+             <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
+               Não foi possível carregar as empresas.
+             </div>
           ) : filtered.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
               Nenhuma empresa encontrada.
@@ -213,7 +288,16 @@ const AdminPanel = ({ onBack }: { onBack: () => void }) => {
                       {/* Company info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-sm truncate">{company.name}</p>
+                          <input
+                            defaultValue={company.name}
+                            onBlur={(e) => {
+                              if (e.target.value !== company.name) {
+                                handleRename(company.id, e.target.value);
+                              }
+                            }}
+                            className="bg-transparent border-none font-semibold text-sm truncate hover:bg-muted/30 focus:bg-muted/50 focus:outline-none rounded px-1 transition-all cursor-edit"
+                            title="Clique para renomear"
+                          />
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${status.bg} ${status.color}`}>
                             {status.icon} {status.label}
                           </span>

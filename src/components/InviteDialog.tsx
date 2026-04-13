@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, UserPlus, Mail, CheckCircle, AlertCircle, Loader2, Users } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -16,6 +17,7 @@ const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
   const { session } = useAuth();
   const { usageData } = usePlanLimits();
   const [email, setEmail] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -29,36 +31,53 @@ const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
     e.preventDefault();
     if (!email.trim()) return;
 
+    if (!usageData || !usageData.company) {
+      setStatus("error");
+      setErrorMsg("Carregando dados da empresa... Aguarde um instante ou verifique se você possui uma empresa vinculada no Perfil.");
+      return;
+    }
+
+    const company = usageData.company as any;
+    const generatedPass = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
     setStatus("loading");
     setErrorMsg("");
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-invite`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
+      // ... (verificaçoes de limite mantidas) ...
+      const { count: memberCount, error: countErr } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", company.id);
 
-      const data = await res.json();
+      if (countErr) throw new Error(`Erro ao contar membros: ${countErr.message}`);
 
-      if (!res.ok) {
-        if (res.status === 403) {
-          setStatus("limit");
-        } else {
-          setStatus("error");
-          setErrorMsg(data.error ?? "Erro ao enviar convite.");
-        }
+      if ((memberCount ?? 0) >= maxMembers) {
+        setStatus("limit");
         return;
       }
 
+      // 2. Insere na tabela de convites com a SENHA TEMPORARIA
+      const { error: inviteErr } = await supabase
+        .from("invites")
+        .insert([{ 
+          email: email.trim().toLowerCase(), 
+          company_id: company.id,
+          temp_password: generatedPass
+        }]);
+
+      if (inviteErr) {
+        setStatus("error");
+        setErrorMsg(`Erro no banco: ${inviteErr.message}`);
+        return;
+      }
+
+      setTempPassword(generatedPass);
       setStatus("success");
-      setEmail("");
-    } catch {
+    } catch (err: any) {
+      console.error("Erro completo no convite:", err);
       setStatus("error");
-      setErrorMsg("Erro de conexão. Tente novamente.");
+      setErrorMsg(`Erro inesperado: ${err.message || "Verifique sua conexão"}`);
     }
   };
 
@@ -124,24 +143,51 @@ const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
               <CheckCircle size={24} className="text-emerald-400" />
             </div>
             <div>
-              <p className="font-semibold text-emerald-400">Convite enviado!</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Um e-mail foi enviado para <strong>{email || "o convidado"}</strong> com o link de acesso ao VnotePad.
+              <p className="font-semibold text-emerald-400">Convite gerador com sucesso!</p>
+              <p className="text-sm text-muted-foreground mt-1 px-2">
+                Envie estes dados para o funcionário:
               </p>
             </div>
-            <div className="flex gap-2 w-full mt-2">
+            
+            <div className="w-full bg-muted/30 border border-dashed border-emerald-500/30 rounded-xl p-4 space-y-3">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">E-mail de Acesso</span>
+                <span className="text-sm font-mono">{email}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Senha Temporária</span>
+                <span className="text-2xl font-mono font-bold tracking-wider text-primary">{tempPassword}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 w-full mt-2">
               <button
-                onClick={() => setStatus("idle")}
-                className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all"
+                onClick={() => {
+                  const text = `Seu acesso ao VnotePad está pronto!\n\nEmail: ${email}\nSenha: ${tempPassword}\n\nBaixe o app e entre com esses dados. Você deverá trocar sua senha no primeiro acesso.`;
+                  window.open(`mailto:${email}?subject=Seu Acesso ao VnotePad&body=${encodeURIComponent(text)}`);
+                }}
+                className="w-full py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:opacity-90 transition-all flex items-center justify-center gap-2"
               >
-                Convidar outro
+                <Mail size={16} /> Enviar por E-mail
               </button>
-              <button
-                onClick={handleClose}
-                className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
-              >
-                Fechar
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                   const text = `Seu acesso ao VnotePad está pronto!\n\nEmail: ${email}\nSenha: ${tempPassword}`;
+                   navigator.clipboard.writeText(text);
+                   alert("Copiado! Agora você pode colar no WhatsApp.");
+                  }}
+                  className="flex-1 py-2 rounded-lg text-xs font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
+                >
+                  Copiar Dados
+                </button>
+                <button
+                  onClick={() => setStatus("idle")}
+                  className="flex-1 py-2 rounded-lg text-xs font-medium bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
+                >
+                  Novo Convite
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -175,7 +221,7 @@ const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
 
             {/* Info box */}
             <div className="bg-primary/5 border border-primary/15 rounded-lg px-3 py-2.5 text-xs text-muted-foreground">
-              <p>🔒 O funcionário receberá um e-mail seguro para criar sua senha. Ele terá acesso ao VnotePad como membro de <strong className="text-foreground">{company?.name}</strong>.</p>
+              <p>🔒 Ao gerar o convite, você garante uma vaga para este e-mail na <strong className="text-foreground">{company?.name}</strong>. Não é necessário enviar links de confirmação.</p>
             </div>
 
             <button
